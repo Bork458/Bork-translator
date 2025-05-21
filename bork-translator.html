@@ -1,115 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Bork Translator</title>
-  <style>
-    body { font-family: sans-serif; padding: 2em; background: #f9f9f9; max-width: 600px; margin: auto; }
-    textarea, input[type="text"] { width: 100%; padding: 0.5em; margin-bottom: 1em; font-size: 1em; }
-    button { padding: 0.5em 1em; font-size: 1em; margin-right: 0.5em; }
-    label { font-weight: bold; display: block; margin-bottom: 0.2em; }
-    .section { background: white; padding: 1em; margin-bottom: 2em; border-radius: 5px; box-shadow: 0 0 5px #ccc; }
-    #outputText { white-space: pre-wrap; font-weight: bold; min-height: 50px; background: #eef; padding: 1em; border-radius: 5px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bork Translator</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
+  textarea { width: 100%; height: 100px; font-size: 1rem; }
+  button { margin-top: 1rem; padding: 0.5rem 1rem; font-size: 1rem; }
+  .result { margin-top: 1rem; white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; min-height: 100px; background: #f9f9f9; }
+  label { font-weight: bold; }
+</style>
 </head>
 <body>
 
-  <h1>Bork Translator</h1>
+<h1>Bork Translator</h1>
 
-  <div class="section">
-    <label for="inputText">Enter text (English or Bork):</label>
-    <textarea id="inputText" placeholder="Type a sentence here..."></textarea>
-    <button onclick="translateText()">Translate</button>
-  </div>
+<label for="inputText">Enter text to translate:</label>
+<textarea id="inputText" placeholder="Type Bork or English here..."></textarea>
 
-  <div class="section">
-    <h2>Translation:</h2>
-    <div id="outputText"></div>
-  </div>
+<div>
+  <button onclick="translateToEnglish()">Translate Bork → English</button>
+  <button onclick="translateToBork()">Translate English → Bork</button>
+</div>
 
-  <div class="section">
-    <h2>Add a new word pair</h2>
-    <label for="engWord">English word:</label>
-    <input type="text" id="engWord" placeholder="e.g. hello" />
-    <label for="borkWord">Bork word:</label>
-    <input type="text" id="borkWord" placeholder="e.g. hingo" />
-    <button onclick="addWordPair()">Add Word</button>
-  </div>
+<h2>Translation Result:</h2>
+<div class="result" id="result"></div>
 
-  <script>
-    // Starting dictionary (English to Bork)
-    const dictionary = {
-      "yes": "fing",
-      "no": "fong",
-      "he": "ging",
-      "she": "gong",
-      "wanna": "ok",
-      "base": "bee",
-      "classroom": "radas",
-      "help": "shop",
-      "yard": "prop",
-      "did": "min",
-      "zero": "ro",
-      "one": "ne",
-      "two": "wo",
-      "three": "ree"
-    };
+<script>
+// Updated Bork dictionary
+const borkToEnglish = {
+  "fing": "yes",
+  "fong": "no",
+  "ging": "he",
+  "gong": "she",
+  "ok": "wanna",
+  "bee": "base",
+  "radas": "classroom",
+  "help": "shop",
+  "prop": "yard",
+  "min": "did",
+  "ro": "zero",
+  "ne": "one",
+  "wo": "two",
+  "ree": "three",
+  "soy": "sorry",
+  "cin": "nice",
+  "ame": "mean",
+  "pum": "jump",
+  "nur": "run",
+  "wig": "fly",
+  "tif": "fight",
+  "kal": "walk",
+  "caw": "crawl",
+  "niw": "win",
+  "sel": "lose",
+  "la": "at",
+  "ni": "in",
+  "lat": "talk",
+  "nus": "shout",
+  "pig": "him",
+  "pog": "her",
+  "vov": "love",
+  "kie": "like",
+  "teh": "hate",
+  "panla": "anyway",
+  "bur": "bro",
+  "wak": "know",
+  "ion": "now",
+  "win": "new",
+  "wah": "old",
+  "woh": "how",
+  "hu": "who",
+  "hew": "when",
+  "reeh": "were",
+  "wing": "right",
+  "wong": "wrong",
+  "tu": "yo",
+  "pings": "guys",
+  "ping": "lads",
+  "ta": "do",
+  "du": "to",
+  "duu": "too",
+  "oc": "we",
+  "cen": "our",
+  "oo": "i",
+  "wur": "go",
+  "gic": "want",
+  "gac": "need",
+  "gang": "she"
+};
 
-    // Reverse dictionary (Bork to English)
-    const reverseDictionary = {};
-    function rebuildReverseDictionary() {
-      for (const eng in dictionary) {
-        reverseDictionary[dictionary[eng]] = eng;
-      }
+// Create reverse dictionary for English to Bork
+const englishToBork = {};
+for (const [bork, english] of Object.entries(borkToEnglish)) {
+  englishToBork[english] = bork;
+}
+
+// Helper function to handle the no-apostrophe rule and grammar rules
+function fixEnglishWord(word) {
+  // Since no apostrophes are used and combined words are expected (like cannot), we leave as is
+  return word.toLowerCase();
+}
+
+function translateToEnglish() {
+  const input = document.getElementById("inputText").value.trim();
+  if (!input) {
+    document.getElementById("result").textContent = "";
+    return;
+  }
+
+  // Split input by spaces
+  const words = input.split(/\s+/);
+  const translatedWords = words.map(word => {
+    const lowerWord = word.toLowerCase();
+    // Check for suffixes -ing, -ed, -s
+    let root = lowerWord;
+    let suffix = "";
+
+    if (lowerWord.endsWith("ing")) {
+      root = lowerWord.slice(0, -3);
+      suffix = "ing";
+    } else if (lowerWord.endsWith("ed")) {
+      root = lowerWord.slice(0, -2);
+      suffix = "ed";
+    } else if (lowerWord.endsWith("s")) {
+      root = lowerWord.slice(0, -1);
+      suffix = "s";
     }
-    rebuildReverseDictionary();
 
-    function translateWord(word) {
-      // Remove punctuation from ends for matching
-      let stripped = word.toLowerCase().replace(/^[.,!?]+|[.,!?]+$/g, '');
+    // Translate root if exists
+    let translatedRoot = borkToEnglish[root] || root;
 
-      // First try English->Bork
-      if (dictionary[stripped]) return dictionary[stripped];
+    return translatedRoot + suffix;
+  });
 
-      // Then Bork->English
-      if (reverseDictionary[stripped]) return reverseDictionary[stripped];
+  document.getElementById("result").textContent = translatedWords.join(" ");
+}
 
-      // Try suffix rules (basic)
-      // For now, let's keep it simple and return original if no match
-      return word;
+function translateToBork() {
+  const input = document.getElementById("inputText").value.trim();
+  if (!input) {
+    document.getElementById("result").textContent = "";
+    return;
+  }
+
+  const words = input.split(/\s+/);
+  const translatedWords = words.map(word => {
+    const lowerWord = fixEnglishWord(word);
+
+    // Check for suffixes -ing, -ed, -s
+    let root = lowerWord;
+    let suffix = "";
+
+    if (lowerWord.endsWith("ing")) {
+      root = lowerWord.slice(0, -3);
+      suffix = "ing";
+    } else if (lowerWord.endsWith("ed")) {
+      root = lowerWord.slice(0, -2);
+      suffix = "ed";
+    } else if (lowerWord.endsWith("s")) {
+      root = lowerWord.slice(0, -1);
+      suffix = "s";
     }
 
-    function translateText() {
-      const input = document.getElementById("inputText").value.trim();
-      if (!input) {
-        document.getElementById("outputText").innerText = "(Type something to translate)";
-        return;
-      }
-      const words = input.split(/\s+/);
-      const translatedWords = words.map(translateWord);
-      document.getElementById("outputText").innerText = translatedWords.join(' ');
-    }
+    // Translate root if exists
+    let translatedRoot = englishToBork[root] || root;
 
-    function addWordPair() {
-      const eng = document.getElementById("engWord").value.trim().toLowerCase();
-      const bork = document.getElementById("borkWord").value.trim().toLowerCase();
+    return translatedRoot + suffix;
+  });
 
-      if (!eng || !bork) {
-        alert("Please enter both English and Bork words.");
-        return;
-      }
-      if (dictionary[eng]) {
-        alert(`English word "${eng}" already exists with Bork word "${dictionary[eng]}".`);
-        return;
-      }
+  document.getElementById("result").textContent = translatedWords.join(" ");
+}
+</script>
 
-      dictionary[eng] = bork;
-      rebuildReverseDictionary();
-
-      alert(`Added: "${eng}" ↔ "${bork}"`);
-      document.getElementById("engWord").value = "";
-      document.getElementById("borkWord").value = "";
-    }
-  </script>
 </body>
 </html>
