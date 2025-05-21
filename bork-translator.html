@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bork Translator</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; background: #f9f9f9; max-width: 600px; margin: auto; }
+    textarea, input[type="text"] { width: 100%; padding: 0.5em; margin-bottom: 1em; font-size: 1em; }
+    button { padding: 0.5em 1em; font-size: 1em; margin-right: 0.5em; }
+    label { font-weight: bold; display: block; margin-bottom: 0.2em; }
+    .section { background: white; padding: 1em; margin-bottom: 2em; border-radius: 5px; box-shadow: 0 0 5px #ccc; }
+    #outputText { white-space: pre-wrap; font-weight: bold; min-height: 50px; background: #eef; padding: 1em; border-radius: 5px; }
+  </style>
+</head>
+<body>
+
+  <h1>Bork Translator</h1>
+
+  <div class="section">
+    <label for="inputText">Enter text (English or Bork):</label>
+    <textarea id="inputText" placeholder="Type a sentence here..."></textarea>
+    <button onclick="translateText()">Translate</button>
+  </div>
+
+  <div class="section">
+    <h2>Translation:</h2>
+    <div id="outputText"></div>
+  </div>
+
+  <div class="section">
+    <h2>Add a new word pair</h2>
+    <label for="engWord">English word:</label>
+    <input type="text" id="engWord" placeholder="e.g. hello" />
+    <label for="borkWord">Bork word:</label>
+    <input type="text" id="borkWord" placeholder="e.g. hingo" />
+    <button onclick="addWordPair()">Add Word</button>
+  </div>
+
+  <script>
+    // Starting dictionary (English to Bork)
+    const dictionary = {
+      "yes": "fing",
+      "no": "fong",
+      "he": "ging",
+      "she": "gong",
+      "wanna": "ok",
+      "base": "bee",
+      "classroom": "radas",
+      "help": "shop",
+      "yard": "prop",
+      "did": "min",
+      "zero": "ro",
+      "one": "ne",
+      "two": "wo",
+      "three": "ree"
+    };
+
+    // Reverse dictionary (Bork to English)
+    const reverseDictionary = {};
+    function rebuildReverseDictionary() {
+      for (const eng in dictionary) {
+        reverseDictionary[dictionary[eng]] = eng;
+      }
+    }
+    rebuildReverseDictionary();
+
+    function translateWord(word) {
+      // Remove punctuation from ends for matching
+      let stripped = word.toLowerCase().replace(/^[.,!?]+|[.,!?]+$/g, '');
+
+      // First try English->Bork
+      if (dictionary[stripped]) return dictionary[stripped];
+
+      // Then Bork->English
+      if (reverseDictionary[stripped]) return reverseDictionary[stripped];
+
+      // Try suffix rules (basic)
+      // For now, let's keep it simple and return original if no match
+      return word;
+    }
+
+    function translateText() {
+      const input = document.getElementById("inputText").value.trim();
+      if (!input) {
+        document.getElementById("outputText").innerText = "(Type something to translate)";
+        return;
+      }
+      const words = input.split(/\s+/);
+      const translatedWords = words.map(translateWord);
+      document.getElementById("outputText").innerText = translatedWords.join(' ');
+    }
+
+    function addWordPair() {
+      const eng = document.getElementById("engWord").value.trim().toLowerCase();
+      const bork = document.getElementById("borkWord").value.trim().toLowerCase();
+
+      if (!eng || !bork) {
+        alert("Please enter both English and Bork words.");
+        return;
+      }
+      if (dictionary[eng]) {
+        alert(`English word "${eng}" already exists with Bork word "${dictionary[eng]}".`);
+        return;
+      }
+
+      dictionary[eng] = bork;
+      rebuildReverseDictionary();
+
+      alert(`Added: "${eng}" ↔ "${bork}"`);
+      document.getElementById("engWord").value = "";
+      document.getElementById("borkWord").value = "";
+    }
+  </script>
+</body>
+</html>
