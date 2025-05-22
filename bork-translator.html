@@ -49,15 +49,24 @@
       "gam": "muga", "ram": "home", "hep": "shop", "carp": "foynes",
       "ig": "off", "ag": "of", "rob": "fat", "rab": "skinny", "ii": "a",
       "ro": "zero", "ne": "one", "wo": "two", "ree": "three",
+      "soy": "sorry", "cin": "nice", "ame": "mean", "pum": "jump",
+      "nur": "run", "wig": "fly", "tif": "fight", "kal": "walk",
+      "caw": "crawl", "niw": "win", "sel": "lose", "la": "at",
+      "ni": "in", "lat": "talk", "hus": "shout", "pig": "him",
+      "pog": "her", "vov": "love", "kie": "like", "teh": "hate",
+      "panla": "anyway", "bur": "bro", "wak": "know", "ion": "now",
+      "win": "new", "wah": "old", "woh": "how", "hu": "who",
+      "hew": "when", "reeh": "where", "wing": "right", "wong": "wrong",
+      "pings": "guys", "ping": "lads", "ta": "do", "du": "to",
+      "duu": "too", "oc": "we", "ep": "us", "cen": "our", "oo": "i",
+      "wur": "go", "gic": "want", "gac": "need"
     };
 
-    // Build English to Bork
     const englishToBork = {};
     for (let key in borkToEnglish) {
       englishToBork[borkToEnglish[key]] = key;
     }
 
-    // Support digit word mapping
     const digits = {
       "0": "ro", "1": "ne", "2": "wo", "3": "ree",
       "4": "ur", "5": "ve", "6": "ix", "7": "en",
@@ -69,29 +78,30 @@
       const input = document.getElementById("input").value.toLowerCase().trim();
       const words = input.split(/\s+/);
       let output = words.map(word => {
-        // Handle numbers like 'wone' = 21
-        if (/^([a-z]{2,3})+$/.test(word)) {
-          let i = 0, result = "";
-          while (i < word.length) {
-            for (let len = 3; len >= 2; len--) {
-              const part = word.substring(i, i + len);
-              if (reverseDigits[part]) {
-                result += reverseDigits[part];
-                i += len;
-                break;
-              }
+        // Handle number-like words
+        let i = 0, result = "", matched = false;
+        while (i < word.length) {
+          let found = false;
+          for (let len = 3; len >= 2; len--) {
+            const part = word.substring(i, i + len);
+            if (reverseDigits[part]) {
+              result += reverseDigits[part];
+              i += len;
+              found = true;
+              matched = true;
+              break;
             }
-            break; // Stop if no digit match
           }
-          if (result.length > 0) return result;
+          if (!found) break;
         }
+        if (matched) return result;
         return borkToEnglish[word] || word;
       }).join(" ");
       document.getElementById("output").value = output;
     }
 
     function translateToBork() {
-      const input = document.getElementById("input").value.toLowerCase().trim();
+      const input = document.getElementById("input").toLowerCase().trim();
       const words = input.replace(/’/g, "'").split(/\s+/).map(w => w.replace(/n't/g, ' not'));
       let output = words.map(word => {
         if (/^\d+$/.test(word)) {
