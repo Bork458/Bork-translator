@@ -34,43 +34,39 @@
       teh: "hate", panla: "anyway", bur: "bro", wak: "know", ion: "now", win: "new", wah: "old", 
       woh: "how", hu: "who", hew: "when", reeh: "where", wing: "right", wong: "wrong", 
       pings: "guys", ping: "lads", ta: "do", du: "to", duu: "too", oc: "we", ep: "us", 
-      cen: "our", oo: "i", wur: "go", gic: "want", gac: "need",
-      // Numbers
-      ro: "zero", ne: "one", wo: "two", ree: "three"
+      cen: "our", oo: "i", wur: "go", gic: "want", gac: "need", ro: "zero", ne: "one", 
+      wo: "two", ree: "three"
     };
 
-    function reverseDict(dict) {
-      const reversed = {};
-      for (const [key, value] of Object.entries(dict)) {
-        reversed[value] = key;
+    const reversed = {};
+    for (const [bork, english] of Object.entries(dictionary)) {
+      if (!reversed[english]) {
+        reversed[english] = bork;
       }
-      return reversed;
     }
 
     function isEnglish(text) {
-      // Basic guess: if it contains common English words or spaces, assume English
-      return /\b(the|and|is|in|to|of|i|you|he|she|we|they|have|not|want)\b/i.test(text);
+      // Detect English if contains common English words
+      return /\b(the|and|you|he|she|to|i|we|want|go|have|is|of|not)\b/i.test(text);
     }
 
-    function cleanWord(word) {
-      return word.toLowerCase().replace(/[^a-z]/g, "");
+    function translateWord(word, dict) {
+      const lower = word.toLowerCase();
+      const punctuation = word.match(/[^a-zA-Z]*$/)[0];
+      const clean = lower.replace(/[^a-z]/g, "");
+      const translated = dict[clean] || word;
+      return translated + punctuation;
     }
 
     function translate() {
-      const input = document.getElementById("input").value;
+      const input = document.getElementById("input").value.trim();
       const output = document.getElementById("output");
       const words = input.split(/\s+/);
-      const result = [];
 
-      const reversed = reverseDict(dictionary);
       const useEnglishToBork = isEnglish(input);
+      const dict = useEnglishToBork ? reversed : dictionary;
 
-      for (let word of words) {
-        const cleaned = cleanWord(word);
-        const lookup = useEnglishToBork ? reversed[cleaned] : dictionary[cleaned];
-        result.push(lookup || word);
-      }
-
+      const result = words.map(word => translateWord(word, dict));
       output.value = result.join(" ");
     }
   </script>
