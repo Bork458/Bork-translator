@@ -46,16 +46,22 @@
     }
 
     function isEnglish(text) {
-      // Detect English if contains common English words
       return /\b(the|and|you|he|she|to|i|we|want|go|have|is|of|not)\b/i.test(text);
     }
 
     function translateWord(word, dict) {
-      const lower = word.toLowerCase();
       const punctuation = word.match(/[^a-zA-Z]*$/)[0];
-      const clean = lower.replace(/[^a-z]/g, "");
-      const translated = dict[clean] || word;
-      return translated + punctuation;
+      const clean = word.replace(/[^a-zA-Z]/g, "");
+
+      const lower = clean.toLowerCase();
+      const translated = dict[lower] || clean;
+
+      let result = translated;
+      if (clean[0] === clean[0]?.toUpperCase()) {
+        result = translated.charAt(0).toUpperCase() + translated.slice(1);
+      }
+
+      return result + punctuation;
     }
 
     function translate() {
