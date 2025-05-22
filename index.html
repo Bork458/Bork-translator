@@ -51,6 +51,7 @@
     }
 
     function translateWord(word, dict) {
+      console.log("Translate function was called!");
       const punctuation = word.match(/[^a-zA-Z]*$/)[0];
       const clean = word.replace(/[^a-zA-Z]/g, "");
 
